@@ -11,5 +11,5 @@ Authors@R: c(
 Maintainer: Shota Ochi <shotaochi1990@gmail.com>
 Description: Cpp-Taskflow is a modern header-only C++ parallel task programming library, <https://github.com/cpp-taskflow/cpp-taskflow>. Cpp-Taskflow supports static and dynamic tasking, conditional tasking, composable tasking, and concurrent CPU-GPU tasking. Cpp-Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
 License: MIT + file LICENSE
-URL: https://github.com/ShotaOchi/cpptf
+URL: https://github.com/ShotaOchi/cpptf, https://github.com/cpp-taskflow/cpp-taskflow
 BugReports: https://github.com/ShotaOchi/cpptf/issues
