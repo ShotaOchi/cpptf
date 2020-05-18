@@ -1,0 +1,4 @@
+* text=auto eol=lf
+data/* binary
+src/* text=lf
+R/* text=lf
