@@ -7,7 +7,7 @@
 
 ## About
 
-cpptf provides header files of Cpp-Taskflow.
+cpptf provides Cpp-Taskflow header files for R users.
 
 Cpp-Taskflow is a modern header-only C++ parallel task programming library, [https://github.com/cpp-taskflow/cpp-taskflow](https://github.com/cpp-taskflow/cpp-taskflow). 
 
