@@ -26,7 +26,7 @@ devtools::install_github("ShotaOchi/cpptf")
 
 ### How to use Cpp-Taskflow in sourceCpp function of Rcpp
 
-1. Write "// [[Rcpp::plugins(cpp14)]]" and "// [[Rcpp::depends(cpptf)]]" in your code.
+1. Write **// [[Rcpp::plugins(cpp14)]]** and **// [[Rcpp::depends(cpptf)]]** in your code.
 1. Include Cpp-Taskflow header file.
 
 An example is shown below.
@@ -67,6 +67,6 @@ test()
 
 ### How to use Cpp-Taskflow in your R package
 
-1. Add cpptf and Rcpp to Imports field and LinkingTo field.
-1. Write "CXX_STD = CXX14" in src/Makevars. 
+1. Add **cpptf** and **Rcpp** to Imports fields and LinkingTo fields.
+1. Write **CXX_STD = CXX14** in src/Makevars. 
 1. Include Cpp-Taskflow header file and Rcpp header file.
