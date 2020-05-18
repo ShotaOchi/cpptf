@@ -13,7 +13,3 @@ Description: Cpp-Taskflow is a modern header-only C++ parallel task programming 
 License: MIT + LICENSE
 URL: https://github.com/ShotaOchi/cpptf
 BugReports: https://github.com/ShotaOchi/cpptf/issues
-LazyData: true
-RoxygenNote: 7.1.0
-VignetteBuilder: knitr
-Encoding: UTF-8
