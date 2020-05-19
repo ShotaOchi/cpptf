@@ -13,6 +13,8 @@ Cpp-Taskflow is a modern header-only C++ parallel task programming library, [htt
 
 Cpp-Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
 
+See [https://cpp-taskflow.github.io/cpp-taskflow/](https://cpp-taskflow.github.io/cpp-taskflow/) for more information about Cpp-Taskflow.
+
 ## Installation
 You can install cpptf from GitHub.
 
