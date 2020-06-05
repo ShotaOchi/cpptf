@@ -2,3 +2,5 @@ inst/doc
 *.o
 *.so
 *.dll
+docs/_sources/*.html
+docs/_sources/*.markdown

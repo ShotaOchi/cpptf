@@ -7,13 +7,13 @@
 
 ## About
 
-cpptf provides Cpp-Taskflow header files for R users.
+cpptf provides Taskflow header files for R users.
 
-Cpp-Taskflow is a modern header-only C++ parallel task programming library, [https://github.com/cpp-taskflow/cpp-taskflow](https://github.com/cpp-taskflow/cpp-taskflow). 
+Taskflow is a modern header-only C++ parallel task programming library, [https://github.com/taskflow/taskflow](https://github.com/taskflow/taskflow). 
 
-Cpp-Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
+Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
 
-See [https://cpp-taskflow.github.io/cpp-taskflow/](https://cpp-taskflow.github.io/cpp-taskflow/) for more information about Cpp-Taskflow.
+See [https://taskflow.github.io/taskflow/](https://taskflow.github.io/taskflow/) for more information about Taskflow.
 
 ## Installation
 You can install cpptf from GitHub.
@@ -26,12 +26,19 @@ devtools::install_github("ShotaOchi/cpptf")
 
 ## Usage
 
-### How to use Cpp-Taskflow in sourceCpp function of Rcpp
+### How to use Taskflow in sourceCpp function of Rcpp
 
 1. Write **// [[Rcpp::plugins(cpp14)]]** and **// [[Rcpp::depends(cpptf)]]** in your code.
-1. Include Cpp-Taskflow header file.
+1. Include Taskflow header file and Rcpp header file.
 
-An example is shown below.
+### How to use Taskflow in your R package
+
+1. Add **cpptf** and **Rcpp** to Imports fields and LinkingTo fields.
+1. Write **CXX_STD = CXX14** in src/Makevars. 
+1. Include Taskflow header file and Rcpp header file.
+
+## Example
+A simple example is shown below.
 ```
 library(Rcpp)
 
@@ -66,9 +73,3 @@ void test()
 
 test()
 ```
-
-### How to use Cpp-Taskflow in your R package
-
-1. Add **cpptf** and **Rcpp** to Imports fields and LinkingTo fields.
-1. Write **CXX_STD = CXX14** in src/Makevars. 
-1. Include Cpp-Taskflow header file and Rcpp header file.

@@ -4,4 +4,4 @@
 \title{\packageTitle{cpptf}}
 \description{\packageDescription{cpptf}}
 \section{Maintainer}{\packageMaintainer{cpptf}}
-\references{https://github.com/cpp-taskflow/cpp-taskflow}
+\references{https://github.com/taskflow/taskflow}

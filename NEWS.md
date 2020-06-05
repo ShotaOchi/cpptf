@@ -1,5 +1,12 @@
 # cpptf
 
+## cpptf 0.2.0
+The header files of Taskflow was updated on June 5, 2020.
+
+The lastest comit of Taskflow was [https://github.com/taskflow/taskflow/commit/e02477c23b4dc88a096f84d97583b51a34789ba4](https://github.com/taskflow/taskflow/commit/e02477c23b4dc88a096f84d97583b51a34789ba4).
+
+Note that Cpp-Taskflow has been renamed to Taskflow.
+
 ## cpptf 0.1.0
 The header files of Cpp-Taskflow was downloaded on May 19, 2020.
 
