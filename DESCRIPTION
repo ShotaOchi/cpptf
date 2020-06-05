@@ -11,6 +11,6 @@ Authors@R: c(
 Maintainer: Shota Ochi <shotaochi1990@gmail.com>
 Description: Taskflow is a modern header-only C++ parallel task programming library, <https://github.com/taskflow/taskflow>. Taskflow supports static and dynamic tasking, conditional tasking, composable tasking, and concurrent CPU-GPU tasking. Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
 License: MIT + file LICENSE
-URL: https://github.com/ShotaOchi/cpptf, https://github.com/cpp-taskflow/cpp-taskflow
+URL: https://github.com/ShotaOchi/cpptf, https://github.com/taskflow/taskflow
 BugReports: https://github.com/ShotaOchi/cpptf/issues
 RoxygenNote: 7.1.0
