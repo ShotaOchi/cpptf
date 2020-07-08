@@ -8,25 +8,6 @@
 namespace tf {
 
 
-/** @class WorkerView
-
-@brief class to access worker information from the observer interface
-
-*/
-//class WorkerView {
-//
-//  friend class Executor;
-//
-//  public:
-//
-//
-//  private:
-//
-//    Worker* _worker;
-//
-//};
-
-
 // ----------------------------------------------------------------------------
 // Executor Definition
 // ----------------------------------------------------------------------------
@@ -46,7 +27,7 @@ class Executor {
 
   struct Worker {
     size_t id;
-    size_t victim;
+    size_t vtm;
     Domain domain;
     Executor* executor;
     Notifier::Waiter* waiter;
@@ -186,6 +167,28 @@ class Executor {
     If the caller thread does not belong to the executor, -1 is returned.
     */
     int this_worker_id() const;
+
+    //
+    //@brief runs a given function asynchronously and returns std::future that will
+    //       eventually hold the result of that function call
+    //template <typename F, typename... ArgsT>
+    //auto async(F&& f, ArgsT&&... args) {
+
+    //  using R = typename function_traits<F>::return_type;
+
+    //  std::promise<R> p;
+
+    //  auto fu = p.get_future();
+
+    //  auto lambda = [p=std::move(p), f=std::forward<F>(f), args...] () {
+    //    f(args...);
+    //  };
+
+    //  //std::function<void()> f {[f=std::forward<F>(f), args...] () {
+    //  //}};
+
+    //  return fu;
+    //}
     
     /**
     @brief constructs an observer to inspect the activities of worker threads
@@ -265,7 +268,7 @@ class Executor {
     void _invoke_static_work(Worker&, Node*);
     void _invoke_dynamic_work(Worker&, Node*);
     void _invoke_dynamic_work_internal(Worker&, Node*, Graph&, bool);
-    void _invoke_dynamic_work_external(Graph&, Node*);
+    void _invoke_dynamic_work_external(Node*, Graph&, bool);
     void _invoke_condition_work(Worker&, Node*);
     void _invoke_module_work(Worker&, Node*);
 
@@ -436,7 +439,7 @@ inline void Executor::_spawn(size_t N, Domain d) {
   for(size_t i=0; i<N; ++i, ++id) {
 
     _workers[id].id = id;
-    _workers[id].victim = id;
+    _workers[id].vtm = id;
     _workers[id].domain = d;
     _workers[id].executor = this;
     _workers[id].waiter = &_notifier[d]._waiters[i];
@@ -497,7 +500,7 @@ inline void Executor::_explore_task(Worker& w, Node*& t) {
   //}
 
   do {
-    t = (w.id == w.victim) ? _wsq[d].steal() : _workers[w.victim].wsq[d].steal();
+    t = (w.id == w.vtm) ? _wsq[d].steal() : _workers[w.vtm].wsq[d].steal();
 
     if(t) {
       break;
@@ -510,7 +513,7 @@ inline void Executor::_explore_task(Worker& w, Node*& t) {
       }
     }
     
-    w.victim = rdvtm(w.rdgen);
+    w.vtm = rdvtm(w.rdgen);
   } while(!_done);
 
 }
@@ -526,8 +529,7 @@ inline void Executor::_exploit_task(Worker& w, Node*& t) {
       _notifier[d].notify(false);
     }
 
-    do {
-
+    while(t) {
       _invoke(w, t);
       
       if(t->_parent == nullptr) {
@@ -540,8 +542,7 @@ inline void Executor::_exploit_task(Worker& w, Node*& t) {
       }
 
       t = w.wsq[d].pop();
-
-    } while(t);
+    }
 
     --_num_actives[d];
   }
@@ -571,13 +572,13 @@ inline bool Executor::_wait_for_task(Worker& worker, Node*& t) {
 
   _notifier[d].prepare_wait(worker.waiter);
   
-  //if(auto vtm = _find_victim(me); vtm != _workers.size()) {
+  //if(auto vtm = _find_vtm(me); vtm != _workers.size()) {
   if(!_wsq[d].empty()) {
 
     _notifier[d].cancel_wait(worker.waiter);
     //t = (vtm == me) ? _wsq.steal() : _workers[vtm].wsq.steal();
     
-    t = _wsq[d].steal();
+    t = _wsq[d].steal();  // must steal here
     if(t) {
       if(_num_thieves[d].fetch_sub(1) == 1) {
         _notifier[d].notify(false);
@@ -585,7 +586,7 @@ inline bool Executor::_wait_for_task(Worker& worker, Node*& t) {
       return true;
     }
     else {
-      worker.victim = worker.id;
+      worker.vtm = worker.id;
       goto explore_task;
     }
   }
@@ -607,7 +608,7 @@ inline bool Executor::_wait_for_task(Worker& worker, Node*& t) {
     // check all domain queue again
     for(auto& w : _workers) {
       if(!w.wsq[d].empty()) {
-        worker.victim = w.id;
+        worker.vtm = w.id;
         _notifier[d].cancel_wait(worker.waiter);
         goto wait_for_task;
       }
@@ -798,7 +799,7 @@ inline void Executor::_invoke(Worker& worker, Node* node) {
   // a condition node to go back (cyclic).
   // This must be done before scheduling the successors, otherwise this might cause 
   // race condition on the _dependents
-  if(node->_has_state(Node::BRANCH)) {
+  if(node->_has_state(Node::BRANCHED)) {
     // If this is a case node, we need to deduct condition predecessors
     node->_join_counter = node->num_strong_dependents();
   }
@@ -845,12 +846,12 @@ inline void Executor::_invoke_dynamic_work(Worker& w, Node* node) {
 
   handle.subgraph.clear();
 
-  Subflow fb(*this, node, handle.subgraph); 
+  Subflow sf(*this, node, handle.subgraph); 
 
-  handle.work(fb);
+  handle.work(sf);
 
-  if(!fb._joined) {
-    _invoke_dynamic_work_internal(w, node, handle.subgraph, fb._detach);
+  if(sf._joinable) {
+    _invoke_dynamic_work_internal(w, node, handle.subgraph, false);
   }
   
   // TODO 
@@ -858,17 +859,21 @@ inline void Executor::_invoke_dynamic_work(Worker& w, Node* node) {
 }
 
 // Procedure: _invoke_dynamic_work_external
-inline void Executor::_invoke_dynamic_work_external(Graph& g, Node* p) {
+inline void Executor::_invoke_dynamic_work_external(Node*p, Graph& g, bool detach) {
 
   auto worker = _per_thread().worker;
 
   assert(worker && worker->executor == this);
   
-  _invoke_dynamic_work_internal(*worker, p, g, false);
+  _invoke_dynamic_work_internal(*worker, p, g, detach);
 }
 
 // Procedure: _invoke_dynamic_work_internal
-inline void Executor::_invoke_dynamic_work_internal(Worker& w, Node* p, Graph& g, bool d) {
+inline void Executor::_invoke_dynamic_work_internal(
+  Worker& w, Node* p, Graph& g, bool detach
+) {
+
+  assert(p);
 
   if(!g.empty()) {
 
@@ -878,7 +883,14 @@ inline void Executor::_invoke_dynamic_work_internal(Worker& w, Node* p, Graph& g
 
       n->_topology = p->_topology;
       n->_set_up_join_counter();
-      n->_parent = d ? nullptr : p;
+
+      if(detach) {
+        n->_parent = nullptr;
+        n->_set_state(Node::DETACHED);
+      }
+      else {
+        n->_parent = p;
+      }
       
       if(n->num_dependents() == 0) {
         src.push_back(n);
@@ -886,7 +898,13 @@ inline void Executor::_invoke_dynamic_work_internal(Worker& w, Node* p, Graph& g
     }
     
     // detach here
-    if(d) { 
+    if(detach) {    
+      
+      {
+        std::lock_guard<std::mutex> lock(p->_topology->_taskflow._mtx);
+        p->_topology->_taskflow._graph.merge(std::move(g));
+      }
+
       p->_topology->_join_counter.fetch_add(src.size());
       _schedule(src);
     }
@@ -896,16 +914,20 @@ inline void Executor::_invoke_dynamic_work_internal(Worker& w, Node* p, Graph& g
       _schedule(src);
       Node* t = nullptr;
 
-      do {
+      while(p->_join_counter != 0) {
+
         t = w.wsq[w.domain].pop();
-    
+
         if(t) {
           _invoke(w, t);
           t->_parent ? t->_parent->_join_counter.fetch_sub(1) :
                        t->_topology->_join_counter.fetch_sub(1);
         }
+        else {  // here we don't steal (unknown issues to fix)
+          std::this_thread::yield();
+        }
 
-      } while(p->_join_counter != 0);
+      }
     }
   }
 }
@@ -915,7 +937,7 @@ inline void Executor::_invoke_condition_work(Worker& worker, Node* node) {
 
   _observer_prologue(worker, node);
   
-  if(node->_has_state(Node::BRANCH)) {
+  if(node->_has_state(Node::BRANCHED)) {
     node->_join_counter = node->num_strong_dependents();
   }
   else {
@@ -1049,10 +1071,11 @@ std::future<void> Executor::run_until(Taskflow& f, P&& pred) {
 inline void Executor::_set_up_topology(Topology* tpg) {
 
   tpg->_sources.clear();
+  tpg->_taskflow._graph.clear_detached();
   
   // scan each node in the graph and build up the links
   for(auto node : tpg->_taskflow._graph._nodes) {
-
+    
     node->_topology = tpg;
     node->_clear_state();
 
@@ -1124,6 +1147,10 @@ inline void Executor::_tear_down_topology(Topology* tpg) {
       // Need to back up the promise first here becuz taskflow might be 
       // destroy before taskflow leaves
       auto p {std::move(tpg->_promise)};
+
+      // Back up lambda capture in case it has the topology pointer, to avoid it releasing on 
+      // pop_front ahead of _mtx.unlock & _promise.set_value. Released safely when leaving scope.
+      auto bc{ std::move( tpg->_call ) };
 
       f._topologies.pop_front();
 
@@ -1214,12 +1241,22 @@ inline void Executor::wait_for_all() {
 
 inline void Subflow::join() {
 
-  if(_joined) {
-    TF_THROW("subflow already joined");
+  if(!_joinable) {
+    TF_THROW("subflow not joinable");
   }
 
-  _executor._invoke_dynamic_work_external(_graph, _parent);
-  _joined = true;
+  _executor._invoke_dynamic_work_external(_parent, _graph, false);
+  _joinable = false;
+}
+
+inline void Subflow::detach() {
+
+  if(!_joinable) {
+    TF_THROW("subflow already joined or detached");
+  }
+
+  _executor._invoke_dynamic_work_external(_parent, _graph, true);
+  _joinable = false;
 }
 
 }  // end of namespace tf -----------------------------------------------------
