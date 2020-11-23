@@ -1,7 +1,7 @@
 Package: cpptf
 Type: Package
 Title: Taskflow Header Files
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: c(
     person("Shota", "Ochi", email = "shotaochi1990@gmail.com", role = c("aut", "cre")),
     person("Tsung-Wei", "Huang", role = c("ctb", "cph")),
@@ -14,3 +14,4 @@ License: MIT + file LICENSE
 URL: https://github.com/ShotaOchi/cpptf, https://github.com/taskflow/taskflow
 BugReports: https://github.com/ShotaOchi/cpptf/issues
 RoxygenNote: 7.1.0
+Encoding: UTF-8

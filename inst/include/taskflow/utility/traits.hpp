@@ -25,8 +25,9 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-
-#include "../nstd/variant.hpp"
+#include <variant>
+#include <optional>
+#include <any>
 
 namespace tf {
 
@@ -83,41 +84,14 @@ auto make_moc(T&& m) {
 // Functors.
 //-----------------------------------------------------------------------------
 
-//// Overloadded.
-//template <typename... Ts>
-//struct Functors : Ts... { 
-//  using Ts::operator()... ;
-//};
-//
-//template <typename... Ts>
-//Functors(Ts...) -> Functors<Ts...>;
-
-// ----------------------------------------------------------------------------
-// callable traits
-// ----------------------------------------------------------------------------
-
-template <typename F, typename... Args>
-struct is_invocable :
-  std::is_constructible<
-    std::function<void(Args ...)>,
-    std::reference_wrapper<typename std::remove_reference<F>::type>
-  > {
+// Overloadded.
+template <typename... Ts>
+struct Functors : Ts... { 
+  using Ts::operator()... ;
 };
 
-template <typename F, typename... Args>
-constexpr bool is_invocable_v = is_invocable<F, Args...>::value;
-
-template <typename R, typename F, typename... Args>
-struct is_invocable_r :
-  std::is_constructible<
-    std::function<R(Args ...)>,
-    std::reference_wrapper<typename std::remove_reference<F>::type>
-  > {
-};
-
-template <typename R, typename F, typename... Args>
-constexpr bool is_invocable_r_v = is_invocable_r<R, F, Args...>::value;
-
+template <typename... Ts>
+Functors(Ts...) -> Functors<Ts...>;
 
 // ----------------------------------------------------------------------------
 // Function Traits
@@ -140,7 +114,7 @@ struct function_traits
     typename function_traits<decltype(&F::operator())>::argument_tuple_type
   >::type;
 
-  static constexpr size_t arity = std::tuple_size<arguments>::value;
+  static constexpr size_t arity = std::tuple_size_v<arguments>;
 
   template <size_t N>
   struct argument {
@@ -252,7 +226,7 @@ struct function_traits<F&&> : function_traits<F> {};
 
 
 // ----------------------------------------------------------------------------
-// nstd::variant
+// std::variant
 // ----------------------------------------------------------------------------
 template <typename T, typename>
 struct get_index;
@@ -267,7 +241,7 @@ template <size_t I, typename T, typename U, typename... Ts>
 struct get_index_impl<I, T, U, Ts...> : get_index_impl<I+1, T, Ts...>{};
 
 template <typename T, typename... Ts> 
-struct get_index<T, nstd::variant<Ts...>> : get_index_impl<0, T, Ts...>{};
+struct get_index<T, std::variant<Ts...>> : get_index_impl<0, T, Ts...>{};
 
 template <typename T, typename... Ts>
 constexpr auto get_index_v = get_index<T, Ts...>::value;
@@ -277,8 +251,8 @@ constexpr auto get_index_v = get_index<T, Ts...>::value;
 //-----------------------------------------------------------------------------
 template <typename T>
 struct is_pod {
-  static const bool value = std::is_trivial<T>::value && 
-                            std::is_standard_layout<T>::value;
+  static const bool value = std::is_trivial_v<T> && 
+                            std::is_standard_layout_v<T>;
 };
 
 template <typename T>
@@ -290,8 +264,8 @@ constexpr bool is_pod_v = is_pod<T>::value;
 template <class To, class From>
 typename std::enable_if<
   (sizeof(To) == sizeof(From)) &&
-  std::is_trivially_copyable<From>::value &&
-  std::is_trivial<To>::value,
+  std::is_trivially_copyable_v<From> &&
+  std::is_trivial_v<To>,
   // this implementation requires that To is trivially default constructible
   To
 >::type
@@ -302,7 +276,77 @@ bit_cast(const From &src) noexcept {
   return dst;
 }
 
-}  // end of namespace tf. ---------------------------------------------------
+// ----------------------------------------------------------------------------
+// unwrap_reference
+// ----------------------------------------------------------------------------
+
+template <class T>
+struct unwrap_reference { using type = T; };
+
+template <class U>
+struct unwrap_reference<std::reference_wrapper<U>> { using type = U&; };
+
+template<class T>
+using unwrap_reference_t = typename unwrap_reference<T>::type;
+
+template< class T >
+struct unwrap_ref_decay : unwrap_reference<std::decay_t<T>> {};
+
+template<class T>
+using unwrap_ref_decay_t = typename unwrap_ref_decay<T>::type;
+
+// ----------------------------------------------------------------------------
+// stateful iterators
+// ----------------------------------------------------------------------------
+
+// STL-styled iterator
+template <typename B, typename E>
+struct stateful_iterator {
+
+  using TB = std::decay_t<unwrap_ref_decay_t<B>>;
+  using TE = std::decay_t<unwrap_ref_decay_t<E>>;
+  
+  static_assert(std::is_same_v<TB, TE>, "decayed iterator types must match");
+
+  using type = TB;
+};
+
+template <typename B, typename E>
+using stateful_iterator_t = typename stateful_iterator<B, E>::type;
+
+// raw integral index
+template <typename B, typename E, typename S>
+struct stateful_index {
+
+  using TB = std::decay_t<unwrap_ref_decay_t<B>>;
+  using TE = std::decay_t<unwrap_ref_decay_t<E>>;
+  using TS = std::decay_t<unwrap_ref_decay_t<S>>;
+
+  static_assert(
+    std::is_integral_v<TB>, "decayed beg index must be an integral type"
+  );
+  
+  static_assert(
+    std::is_integral_v<TE>, "decayed end index must be an integral type"
+  );
+  
+  static_assert(
+    std::is_integral_v<TS>, "decayed step must be an integral type"
+  );
+
+  static_assert(
+    std::is_same_v<TB, TE> && std::is_same_v<TE, TS>,
+    "decayed index and step types must match"
+  );
+
+  using type = TB;
+};
+
+template <typename B, typename E, typename S>
+using stateful_index_t = typename stateful_index<B, E, S>::type;
+
+
+}  // end of namespace tf. ----------------------------------------------------
 
 
 

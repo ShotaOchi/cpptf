@@ -28,19 +28,23 @@ devtools::install_github("ShotaOchi/cpptf")
 
 ### How to use Taskflow in sourceCpp function of Rcpp
 
+1. Include -pthread in PKG_CPPFLAGS and PKG_LIBS.
 1. Write **// [[Rcpp::plugins(cpp14)]]** and **// [[Rcpp::depends(cpptf)]]** in your code.
 1. Include Taskflow header file and Rcpp header file.
 
 ### How to use Taskflow in your R package
 
 1. Add **cpptf** and **Rcpp** to Imports fields and LinkingTo fields.
-1. Write **CXX_STD = CXX14** in src/Makevars. 
+1. Write **CXX_STD = CXX14**, **PKG_CPPFLAGS = -pthread**, and **PKG_LIBS = -pthread** in src/Makevars.
+1. Write **CXX_STD = CXX14**, **PKG_CPPFLAGS = $(SHLIB_PTHREAD_FLAGS)**, and **PKG_LIBS = $(SHLIB_PTHREAD_FLAGS)** in src/Makevars.win.
 1. Include Taskflow header file and Rcpp header file.
 
 ## Example
 A simple example is shown below.
 ```
 library(Rcpp)
+Sys.setenv("PKG_CPPFLAGS"="-pthread")
+Sys.setenv("PKG_LIBS"="-pthread")
 
 sourceCpp(code = '
 
@@ -73,3 +77,5 @@ void test()
 
 test()
 ```
+
+See [https://shotaochi.github.io/cpptf](https://shotaochi.github.io/cpptf) for more examples.

@@ -2,10 +2,6 @@
 
 namespace tf {
 
-// ----------------------------------------------------------------------------
-// forward declarations
-// ----------------------------------------------------------------------------
-
 // taskflow
 class Node;
 class Graph;
@@ -21,12 +17,14 @@ class ObserverInterface;
 class ChromeTracingObserver;
 class TFProfObserver;
 
-// cudaflow
+// cudaFlow
 class cudaNode;
 class cudaGraph;
 class cudaTask;
 class cudaFlow;
-
+class cudaFlowCapturer;
+class cudaFlowCapturerBase;
+class cublasFlowCapturer;
 
 
 }  // end of namespace tf -----------------------------------------------------
