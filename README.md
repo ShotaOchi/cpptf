@@ -1,7 +1,6 @@
 # cpptf
 
-[![Build Status](https://travis-ci.org/ShotaOchi/cpptf.svg?branch=master)](https://travis-ci.org/ShotaOchi/cpptf)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/ShotaOchi/cpptf?branch=master&svg=true)](https://ci.appveyor.com/project/ShotaOchi/cpptf)
+[![Build Status](https://github.com/ShotaOchi/cpptf/workflows/R-CMD-check/badge.svg)](https://github.com/ShotaOchi/cpptf/actions)
 [![CRAN Version](https://www.r-pkg.org/badges/version/cpptf)](https://cran.r-project.org/package=cpptf)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
