@@ -79,9 +79,9 @@ test()
 
 See [https://taskflow.github.io/taskflow](https://taskflow.github.io/taskflow) for more examples.
 
-## Visualization of Graph
+## Visualization of Task Dependency Graph
 
-We can visualize graph with *DiagrammeR* package.
+We can visualize task dependency graph with *DiagrammeR* package.
 
 ```
 library(DiagrammeR)
@@ -98,7 +98,7 @@ sourceCpp(code = '
 Rcpp::StringVector test_dump()
 {
   tf::Executor executor;
-  tf::Taskflow taskflow;
+  tf::Taskflow taskflow("example");
   auto [A, B, C, D] = taskflow.emplace(
     [] () { Rcpp::Rcout << "TaskA "; },              //  task dependency graph
     [] () { Rcpp::Rcout << "TaskB "; },              // 
@@ -124,6 +124,8 @@ Rcpp::StringVector test_dump()
 grViz(test_dump())
 ```
 
+![task dependency graph](graph.png "task dependency graph")
+
 You can convert the html widget into an image with *htmltools* package and *webshot2* package.
 ```
 library(htmltools)
@@ -135,7 +137,7 @@ webshot(b, file = "your_destination.png")
 unlink(b)
 ```
 
-Anoher way to visualize graph is to use *DOT* package, *magick* package, and *rsvg* package.
+Anoher way to visualize task dependency graph is to use *DOT* package, *magick* package, and *rsvg* package.
 ```
 library(DOT)
 library(magick)

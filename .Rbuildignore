@@ -2,3 +2,4 @@
 ^appveyor\.yml$
 docs
 ^\.github$
+^graph\.png$
