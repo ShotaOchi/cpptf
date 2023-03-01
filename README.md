@@ -78,3 +78,81 @@ test()
 ```
 
 See [https://taskflow.github.io/taskflow](https://taskflow.github.io/taskflow) for more examples.
+
+## Visualization of Graph
+
+We can visualize graph with *DiagrammeR* package.
+
+```
+library(DiagrammeR)
+
+sourceCpp(code = '
+
+// [[Rcpp::plugins(cpp17)]]
+// [[Rcpp::depends(cpptf)]]
+
+#include <Rcpp.h>
+#include <taskflow/taskflow.hpp>
+
+// [[Rcpp::export]]
+Rcpp::StringVector test_dump()
+{
+  tf::Executor executor;
+  tf::Taskflow taskflow;
+  auto [A, B, C, D] = taskflow.emplace(
+    [] () { Rcpp::Rcout << "TaskA "; },              //  task dependency graph
+    [] () { Rcpp::Rcout << "TaskB "; },              // 
+    [] () { Rcpp::Rcout << "TaskC "; },              //          +---+          
+    [] () { Rcpp::Rcout << "TaskD "; }               //    +---->| B |-----+   
+  );                                                 //    |     +---+     |
+                                                     //  +---+           +-v-+ 
+  A.precede(B);  // A runs before B                  //  | A |           | D | 
+  A.precede(C);  // A runs before C                  //  +---+           +-^-+ 
+  B.precede(D);  // B runs before D                  //    |     +---+     |    
+  C.precede(D);  // C runs before D                  //    +---->| C |-----+    
+                                                     //          +---+          
+  A.name("A");
+  B.name("B");
+  C.name("C");
+  D.name("D");
+  Rcpp::StringVector out(1);
+  out(0) = taskflow.dump();
+  return out;
+}
+')
+
+grViz(test_dump())
+```
+
+You can convert the html widget into an image with *htmltools* package and *webshot2* package.
+```
+library(htmltools)
+library(webshot2)
+
+a <- grViz(test_dump())
+b <- html_print(a)
+webshot(b, file = "your_destination.png")
+unlink(b)
+```
+
+Anoher way to visualize graph is to use *DOT* package, *magick* package, and *rsvg* package.
+```
+library(DOT)
+library(magick)
+library(rsvg)
+
+f <- function(g, width = 1000)
+{
+  wd <- getwd()
+  on.exit(setwd(wd))
+  setwd(tempdir())
+  tmp <- tempfile(tmpdir = "", fileext = ".svg")
+  tmp <- gsub("[\\]", "a", tmp)
+  on.exit(unlink(tmp), add = TRUE)
+  dot(g, file = tmp)
+  image_read_svg(tmp, width = width)
+}
+
+img <- f(test_dump())
+plot(img)
+```
