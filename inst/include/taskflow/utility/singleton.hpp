@@ -11,11 +11,11 @@ template <typename T>
 class Singleton {
 
   public:
-  
+
   /**
   @brief get a reference to the singleton object
   */
-  static T& get() {
+  inline static T& get() {
     static T instance;
     return instance;
   }

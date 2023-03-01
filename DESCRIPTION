@@ -1,17 +1,14 @@
 Package: cpptf
 Type: Package
 Title: Taskflow Header Files
-Version: 0.4.0
+Version: 0.5.0
 Authors@R: c(
     person("Shota", "Ochi", email = "shotaochi1990@gmail.com", role = c("aut", "cre")),
-    person("Tsung-Wei", "Huang", role = c("ctb", "cph")),
-    person(" Dian-Lun", "Lin", role = c("ctb", "cph")),
-    person("Yibo", "Lin", role = c("ctb", "cph")),
-    person("Chun-Xun", " Lin", role = c("ctb", "cph")))
+    person("Tsung-Wei", "Huang", role = c("ctb", "cph"))
 Maintainer: Shota Ochi <shotaochi1990@gmail.com>
 Description: Taskflow is a modern header-only C++ parallel task programming library, <https://github.com/taskflow/taskflow>. Taskflow supports static and dynamic tasking, conditional tasking, composable tasking, and concurrent CPU-GPU tasking. Taskflow helps us to quickly write parallel and heterogeneous programs with high performance scalability and simultaneous high productivity.
 License: MIT + file LICENSE
 URL: https://github.com/ShotaOchi/cpptf, https://github.com/taskflow/taskflow
 BugReports: https://github.com/ShotaOchi/cpptf/issues
-RoxygenNote: 7.1.0
+RoxygenNote: 7.2.3
 Encoding: UTF-8

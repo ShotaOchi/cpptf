@@ -67,7 +67,7 @@ class Notifier {
   friend class Executor;
 
   public:
-  
+
   struct Waiter {
     std::atomic<Waiter*> next;
     std::mutex mu;
@@ -121,7 +121,8 @@ class Notifier {
       // Remove this thread from prewait counter and add it to the waiter list.
       assert((state & kWaiterMask) != 0);
       uint64_t newstate = state - kWaiterInc + kEpochInc;
-      newstate = (newstate & ~kStackMask) | (w - &_waiters[0]);
+      //newstate = (newstate & ~kStackMask) | (w - &_waiters[0]);
+      newstate = static_cast<uint64_t>((newstate & ~kStackMask) | static_cast<uint64_t>(w - &_waiters[0]));
       if ((state & kStackMask) == kStackMask)
         w->next.store(nullptr, std::memory_order_relaxed);
       else
@@ -179,7 +180,8 @@ class Notifier {
         Waiter* w = &_waiters[state & kStackMask];
         Waiter* wnext = w->next.load(std::memory_order_relaxed);
         uint64_t next = kStackMask;
-        if (wnext != nullptr) next = wnext - &_waiters[0];
+        //if (wnext != nullptr) next = wnext - &_waiters[0];
+        if (wnext != nullptr) next = static_cast<uint64_t>(wnext - &_waiters[0]);
         // Note: we don't add kEpochInc here. ABA problem on the lock-free stack
         // can't happen because a waiter is re-pushed onto the stack only after
         // it was in the pre-wait state which inevitably leads to epoch
@@ -197,7 +199,7 @@ class Notifier {
       }
     }
   }
-  
+
   // notify n workers
   void notify_n(size_t n) {
     if(n >= _waiters.size()) {

@@ -1,29 +1,49 @@
 #pragma once
 
-//#include "taskflow.hpp"
-
 namespace tf {
 
 // ----------------------------------------------------------------------------
-  
-// class: Topology
-class Topology {
-  
-  friend class Taskflow;
+
+// class: TopologyBase
+class TopologyBase {
+
   friend class Executor;
-  
+  friend class Node;
+
+  template <typename T>
+  friend class Future;
+
+  protected:
+
+  std::atomic<bool> _is_cancelled { false };
+};
+
+// ----------------------------------------------------------------------------
+
+// class: AsyncTopology
+class AsyncTopology : public TopologyBase {
+};
+
+// ----------------------------------------------------------------------------
+
+// class: Topology
+class Topology : public TopologyBase {
+
+  friend class Executor;
+  friend class Runtime;
+
   public:
 
     template <typename P, typename C>
     Topology(Taskflow&, P&&, C&&);
-    
+
   private:
 
     Taskflow& _taskflow;
 
     std::promise<void> _promise;
 
-    std::vector<Node*> _sources;
+    SmallVector<Node*> _sources;
 
     std::function<bool()> _pred;
     std::function<void()> _call;
@@ -33,7 +53,7 @@ class Topology {
 
 // Constructor
 template <typename P, typename C>
-inline Topology::Topology(Taskflow& tf, P&& p, C&& c): 
+Topology::Topology(Taskflow& tf, P&& p, C&& c):
   _taskflow(tf),
   _pred {std::forward<P>(p)},
   _call {std::forward<C>(c)} {
